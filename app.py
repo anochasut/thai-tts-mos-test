@@ -27,11 +27,11 @@ RESULTS_REPO_ID = _get_secret("RESULTS_REPO_ID")
 HF_TOKEN = _get_secret("HF_TOKEN")
 
 MOS_LABELS = {
-    1: "1 - Bad (unintelligible)",
-    2: "2 - Poor (understood with great difficulty)",
-    3: "3 - Fair (understood with moderate effort)",
-    4: "4 - Good (understood with little effort)",
-    5: "5 - Excellent (perfectly natural and clear)",
+    1: "1 - Bad (unintelligible) / แย่ (ฟังไม่เข้าใจ)",
+    2: "2 - Poor (understood with great difficulty) / ค่อนข้างแย่ (เข้าใจได้ยากมาก)",
+    3: "3 - Fair (understood with moderate effort) / ปานกลาง (เข้าใจได้แต่ต้องใช้ความพยายามพอสมควร)",
+    4: "4 - Good (understood with little effort) / ดี (เข้าใจได้ง่าย)",
+    5: "5 - Excellent (perfectly natural and clear) / ดีเยี่ยม (เป็นธรรมชาติและชัดเจนสมบูรณ์)",
 }
 
 st.set_page_config(page_title="Thai TTS Listening Test", page_icon="\U0001F3A7")
@@ -80,9 +80,10 @@ def init_session():
 
 
 def start_page():
-    st.title("Thai TTS Listening Test")
+    st.title("Thai TTS Listening Test / แบบทดสอบการฟังเสียงสังเคราะห์ภาษาไทย")
     st.markdown(
         """
+### English
 Thank you for taking part in this listening test.
 
 **What you'll do:** you will hear a series of short Thai audio clips, one at a time.
@@ -96,10 +97,28 @@ For each clip, please:
 
 There are **95 short clips** in total. The session takes roughly 30-45 minutes.
 You may take breaks between clips -- your progress is saved after every clip.
+
+---
+
+### ภาษาไทย
+ขอบคุณที่เข้าร่วมการทดสอบการฟังในครั้งนี้
+
+**สิ่งที่คุณจะทำ:** คุณจะได้ฟังคลิปเสียงภาษาไทยสั้น ๆ ทีละคลิป สำหรับแต่ละคลิป กรุณา:
+
+1. **ฟังอย่างตั้งใจ** (แนะนำให้ใช้หูฟัง และอยู่ในที่เงียบ)
+2. **ให้คะแนนความเป็นธรรมชาติ/ความเข้าใจง่าย** ของเสียงพูด ในระดับ 1-5
+3. **พิมพ์สิ่งที่คุณได้ยินให้ตรงที่สุดเท่าที่จะทำได้** เป็นภาษาไทย แม้ว่าเสียงจะฟังดูไม่เป็นธรรมชาติ
+   หรือคุณไม่แน่ใจทั้งหมด กรุณาพิมพ์คำตอบที่ใกล้เคียงที่สุดแทนการเว้นว่างไว้
+
+มีคลิปเสียงทั้งหมด **95 คลิป** ใช้เวลาทำแบบทดสอบประมาณ 30-45 นาที
+คุณสามารถพักระหว่างคลิปได้ -- ระบบจะบันทึกความคืบหน้าของคุณหลังจากทำแต่ละคลิปเสร็จ
         """
     )
-    listener_id = st.text_input("Your name or listener ID (used only to organize results):")
-    if st.button("Begin test", type="primary", disabled=not listener_id.strip()):
+    listener_id = st.text_input(
+        "Your name or listener ID (used only to organize results): / "
+        "ชื่อหรือรหัสผู้ฟังของคุณ (ใช้เพื่อจัดระเบียบผลลัพธ์เท่านั้น):"
+    )
+    if st.button("Begin test / เริ่มทดสอบ", type="primary", disabled=not listener_id.strip()):
         st.session_state.listener_id = listener_id.strip()
         init_session()
         st.rerun()
@@ -112,7 +131,7 @@ def trial_page():
     total = len(order)
     row = manifest.iloc[order[idx]]
 
-    st.progress(idx / total, text=f"Clip {idx + 1} of {total}")
+    st.progress(idx / total, text=f"Clip {idx + 1} of {total} / คลิปที่ {idx + 1} จาก {total}")
 
     audio_path = os.path.join(AUDIO_DIR, row["audio_filename"])
     with open(audio_path, "rb") as f:
@@ -120,24 +139,32 @@ def trial_page():
 
     with st.form(key=f"trial_form_{idx}"):
         mos = st.radio(
-            "How natural / intelligible was this clip?",
+            "How natural / intelligible was this clip? / "
+            "คลิปนี้ฟังเป็นธรรมชาติ/เข้าใจง่ายแค่ไหน?",
             options=[1, 2, 3, 4, 5],
             format_func=lambda x: MOS_LABELS[x],
             index=None,
             horizontal=False,
         )
         transcription = st.text_area(
-            "Type exactly what you heard (in Thai):",
+            "Type exactly what you heard (in Thai): / "
+            "พิมพ์สิ่งที่คุณได้ยินให้ตรงที่สุด (เป็นภาษาไทย):",
             height=80,
         )
-        submitted = st.form_submit_button("Submit & continue", type="primary")
+        submitted = st.form_submit_button("Submit & continue / ส่งคำตอบและไปต่อ", type="primary")
 
     if submitted:
         if mos is None:
-            st.error("Please select a rating before continuing.")
+            st.error(
+                "Please select a rating before continuing. / "
+                "กรุณาเลือกคะแนนก่อนไปต่อ"
+            )
             return
         if not transcription.strip():
-            st.error("Please type what you heard before continuing (your best guess is fine).")
+            st.error(
+                "Please type what you heard before continuing (your best guess is fine). / "
+                "กรุณาพิมพ์สิ่งที่คุณได้ยินก่อนไปต่อ (เดาที่ใกล้เคียงที่สุดก็ได้)"
+            )
             return
 
         record = {
@@ -155,7 +182,10 @@ def trial_page():
         ok, err = upload_submission(record)
         if not ok:
             st.session_state.pending_uploads.append(record)
-            st.warning(f"Saved locally, but upload failed ({err}). Will retry automatically.")
+            st.warning(
+                f"Saved locally, but upload failed ({err}). Will retry automatically. / "
+                "บันทึกไว้ในเครื่องแล้ว แต่อัปโหลดไม่สำเร็จ ระบบจะลองใหม่ให้อัตโนมัติ"
+            )
 
         st.session_state.current_idx += 1
         st.rerun()
@@ -172,21 +202,25 @@ def retry_pending():
 
 def finish_page():
     retry_pending()
-    st.title("Thank you! \U0001F389")
+    st.title("Thank you! \U0001F389 / ขอบคุณที่เข้าร่วม! \U0001F389")
     st.markdown(
         f"You completed all **{len(st.session_state.responses)}** clips. "
-        "Your responses have been recorded."
+        "Your responses have been recorded.\n\n"
+        f"คุณทำแบบทดสอบครบทั้งหมด **{len(st.session_state.responses)}** คลิปแล้ว "
+        "คำตอบของคุณถูกบันทึกเรียบร้อยแล้ว"
     )
     if st.session_state.pending_uploads:
         st.warning(
             f"{len(st.session_state.pending_uploads)} response(s) could not be uploaded "
             "automatically. Please use the download button below and send the file to the "
-            "test organizer as a backup."
+            "test organizer as a backup.\n\n"
+            f"มีคำตอบ {len(st.session_state.pending_uploads)} รายการที่ไม่สามารถอัปโหลดโดยอัตโนมัติได้ "
+            "กรุณากดปุ่มดาวน์โหลดด้านล่างแล้วส่งไฟล์ให้ผู้จัดการทดสอบเป็นข้อมูลสำรอง"
         )
     df = pd.DataFrame(st.session_state.responses)
     csv_bytes = df.to_csv(index=False).encode("utf-8-sig")
     st.download_button(
-        "Download my responses (CSV backup)",
+        "Download my responses (CSV backup) / ดาวน์โหลดคำตอบของฉัน (ไฟล์สำรอง CSV)",
         data=csv_bytes,
         file_name=f"responses_{st.session_state.session_id}.csv",
         mime="text/csv",
