@@ -12,6 +12,8 @@ from huggingface_hub import HfApi
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 MANIFEST_PATH = os.path.join(APP_DIR, "manifest.csv")
 AUDIO_DIR = os.path.join(APP_DIR, "audio")
+DEMO_AUDIO_DIR = os.path.join(APP_DIR, "demo_audio")
+DEMO_META_PATH = os.path.join(APP_DIR, "demo_meta.json")
 
 def _get_secret(name: str, default: str = "") -> str:
     # Streamlit Community Cloud injects secrets via st.secrets (TOML you paste into
@@ -40,6 +42,14 @@ st.set_page_config(page_title="Thai TTS Listening Test", page_icon="\U0001F3A7")
 @st.cache_data
 def load_manifest():
     return pd.read_csv(MANIFEST_PATH, dtype=str)
+
+
+@st.cache_data
+def load_demo_meta():
+    if not os.path.exists(DEMO_META_PATH):
+        return None
+    with open(DEMO_META_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 def get_api():
@@ -76,13 +86,14 @@ def init_session():
     st.session_state.responses = []
     st.session_state.pending_uploads = []
     st.session_state.session_id = str(uuid.uuid4())[:8]
-    st.session_state.started = True
+    st.session_state.stage = "demo"
 
 
 def start_page():
+    total = len(load_manifest())
     st.title("Thai TTS Listening Test / แบบทดสอบการฟังเสียงสังเคราะห์ภาษาไทย")
     st.markdown(
-        """
+        f"""
 ### English
 Thank you for taking part in this listening test.
 
@@ -95,8 +106,8 @@ For each clip, please:
    sounds unnatural or you are not fully sure, please write your best guess rather than
    leaving it blank.
 
-There are **95 short clips** in total. The session takes roughly 30-45 minutes.
-You may take breaks between clips -- your progress is saved after every clip.
+There are **{total} short clips** in total. Right after this page, you'll see one
+**example clip** to help you get familiar with the task before the real ratings begin.
 
 ---
 
@@ -110,17 +121,60 @@ You may take breaks between clips -- your progress is saved after every clip.
 3. **พิมพ์สิ่งที่คุณได้ยินให้ตรงที่สุดเท่าที่จะทำได้** เป็นภาษาไทย แม้ว่าเสียงจะฟังดูไม่เป็นธรรมชาติ
    หรือคุณไม่แน่ใจทั้งหมด กรุณาพิมพ์คำตอบที่ใกล้เคียงที่สุดแทนการเว้นว่างไว้
 
-มีคลิปเสียงทั้งหมด **95 คลิป** ใช้เวลาทำแบบทดสอบประมาณ 30-45 นาที
-คุณสามารถพักระหว่างคลิปได้ -- ระบบจะบันทึกความคืบหน้าของคุณหลังจากทำแต่ละคลิปเสร็จ
+มีคลิปเสียงทั้งหมด **{total} คลิป** หลังจากหน้านี้ คุณจะได้ฟัง **คลิปตัวอย่าง** หนึ่งคลิป
+เพื่อให้คุ้นเคยกับลักษณะงานก่อนเริ่มการให้คะแนนจริง
         """
     )
     listener_id = st.text_input(
         "Your name or listener ID (used only to organize results): / "
         "ชื่อหรือรหัสผู้ฟังของคุณ (ใช้เพื่อจัดระเบียบผลลัพธ์เท่านั้น):"
     )
-    if st.button("Begin test / เริ่มทดสอบ", type="primary", disabled=not listener_id.strip()):
+    if st.button("Continue / ดำเนินการต่อ", type="primary", disabled=not listener_id.strip()):
         st.session_state.listener_id = listener_id.strip()
         init_session()
+        st.rerun()
+
+
+def demo_page():
+    demo = load_demo_meta()
+    st.title("Example Clip / คลิปตัวอย่าง")
+
+    if demo is None:
+        st.markdown(
+            "(No demo clip is configured -- you can go straight to the real test.) / "
+            "(ไม่มีคลิปตัวอย่างในระบบ -- คุณสามารถเริ่มการทดสอบจริงได้เลย)"
+        )
+    else:
+        st.markdown(
+            """
+### English
+Before the real test, listen to this one example clip so you know what the audio
+quality and the task feel like. This example is **not scored** -- it's just for you
+to get familiar with things.
+
+### ภาษาไทย
+ก่อนเริ่มการทดสอบจริง กรุณาฟังคลิปตัวอย่างนี้ก่อน เพื่อให้คุ้นเคยกับคุณภาพเสียงและลักษณะของงาน
+คลิปตัวอย่างนี้ **ไม่มีการให้คะแนน** เป็นเพียงตัวอย่างเพื่อให้คุณคุ้นเคยเท่านั้น
+            """
+        )
+        demo_audio_path = os.path.join(DEMO_AUDIO_DIR, demo["audio_filename"])
+        with open(demo_audio_path, "rb") as f:
+            st.audio(f.read(), format="audio/wav")
+
+        st.markdown(
+            "**How this task works:** for each real clip, you'll rate it 1-5 for "
+            "naturalness/intelligibility, and type what you heard. For example, a careful, "
+            f"exact transcription of this clip would be:\n\n> {demo['reference_text']}\n\n"
+            "**วิธีการทำงาน:** สำหรับแต่ละคลิปจริง คุณจะให้คะแนน 1-5 ด้านความเป็นธรรมชาติ/ความเข้าใจง่าย "
+            "และพิมพ์สิ่งที่คุณได้ยิน ตัวอย่างเช่น คำถอดเสียงที่ถูกต้องของคลิปนี้คือ:\n\n"
+            f"> {demo['reference_text']}"
+        )
+        st.markdown("**Rating scale / ระดับคะแนน:**")
+        for label in MOS_LABELS.values():
+            st.markdown(f"- {label}")
+
+    if st.button("Start the real test / เริ่มทดสอบจริง", type="primary"):
+        st.session_state.stage = "trial"
         st.rerun()
 
 
@@ -228,15 +282,18 @@ def finish_page():
 
 
 def main():
-    if not st.session_state.get("started"):
-        start_page()
-        return
+    stage = st.session_state.get("stage", "start")
 
-    total = len(st.session_state.trial_order)
-    if st.session_state.current_idx >= total:
-        finish_page()
+    if stage == "start":
+        start_page()
+    elif stage == "demo":
+        demo_page()
     else:
-        trial_page()
+        total = len(st.session_state.trial_order)
+        if st.session_state.current_idx >= total:
+            finish_page()
+        else:
+            trial_page()
 
 
 if __name__ == "__main__":
