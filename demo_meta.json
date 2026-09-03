@@ -1,4 +1,6 @@
 {
-  "audio_filename": "manual_00.wav",
-  "reference_text": "ทดสอบการสร้าง เสียงพูดภาษาไทย"
+  "utt_id": "manual_01",
+  "reference_text": "สวัสดี วันนี้วันสารทจีน",
+  "baseline_audio_filename": "demo_baseline.wav",
+  "candidate_audio_filename": "demo_candidate.wav"
 }

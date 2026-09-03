@@ -1,11 +1,20 @@
-# Thai TTS MOS Listening Test
+# Thai TTS AB Listening Test
 
-A blind listening test: participants first hear one practice clip (see
-`demo_audio/` + `demo_meta.json`, not scored), then rate every clip in
-`manifest.csv` for naturalness/intelligibility (1-5, ITU-T P.800 style) and
-transcribe what they heard. System identity is hidden behind opaque tokens (see
-`manifest.csv`); the real mapping is kept outside this repo. English and Thai
-instructions are shown together throughout.
+An AB comparison test between one **Baseline** system and several **Candidate**
+systems. Baseline/Candidate labels are shown openly (not blinded) -- only which
+real system produced a given Candidate clip is hidden, behind an opaque token (see
+`manifest.csv`); the real mapping is kept outside this repo.
+
+Two parts, back to back:
+1. **Comparison ("pair") trials**: for each rated utterance x each candidate,
+   participants hear Baseline and Candidate, give a 1-5 AB preference score, rate
+   the Candidate's naturalness, and transcribe the Candidate.
+2. **Baseline-only ("solo") trials**, always last: participants rate and
+   transcribe each Baseline clip on its own.
+
+A practice pair (`demo_audio/` + `demo_meta.json`, not scored) is shown first so
+participants know what to expect. English and Thai instructions are shown together
+throughout.
 
 Each submitted trial is uploaded as a small JSON file to a private Hugging Face
 **dataset** repo (configured via `RESULTS_REPO_ID` and `HF_TOKEN` in this app's
@@ -17,4 +26,4 @@ Streamlit Community Cloud secrets), so results persist independently of this app
 
 Deployed on Streamlit Community Cloud. See `../SETUP.md` (in the parent project
 folder) for deployment steps and `../analyze_results.py` for scoring (MOS + WER/CER
-against ground truth).
+per system, plus AB preference per candidate).
