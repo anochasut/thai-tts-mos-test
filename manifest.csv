@@ -7,6 +7,10 @@ pair,35886827_3_15,ea7a,35886827_3_15__5663.wav,35886827_3_15__ea7a.wav
 pair,35886827_3_15,cbbd,35886827_3_15__5663.wav,35886827_3_15__cbbd.wav
 pair,35886827_3_15,2c50,35886827_3_15__5663.wav,35886827_3_15__2c50.wav
 pair,35886827_3_15,3121,35886827_3_15__5663.wav,35886827_3_15__3121.wav
+pair,manual_01,ea7a,manual_01__5663.wav,manual_01__ea7a.wav
+pair,manual_01,cbbd,manual_01__5663.wav,manual_01__cbbd.wav
+pair,manual_01,2c50,manual_01__5663.wav,manual_01__2c50.wav
+pair,manual_01,3121,manual_01__5663.wav,manual_01__3121.wav
 pair,manual_02,ea7a,manual_02__5663.wav,manual_02__ea7a.wav
 pair,manual_02,cbbd,manual_02__5663.wav,manual_02__cbbd.wav
 pair,manual_02,2c50,manual_02__5663.wav,manual_02__2c50.wav
@@ -37,6 +41,7 @@ pair,tsync2_1943_6063,2c50,tsync2_1943_6063__5663.wav,tsync2_1943_6063__2c50.wav
 pair,tsync2_1943_6063,3121,tsync2_1943_6063__5663.wav,tsync2_1943_6063__3121.wav
 solo,35886827_3_12_1,5663,35886827_3_12_1__5663.wav,
 solo,35886827_3_15,5663,35886827_3_15__5663.wav,
+solo,manual_01,5663,manual_01__5663.wav,
 solo,manual_02,5663,manual_02__5663.wav,
 solo,thai_test_0000,5663,thai_test_0000__5663.wav,
 solo,thai_test_0002,5663,thai_test_0002__5663.wav,
