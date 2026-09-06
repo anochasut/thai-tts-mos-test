@@ -73,9 +73,17 @@ def manifest_id() -> str:
     Short hash of manifest.csv. Results are stored under this id so that each round of
     audio (each prepare_manifest.py run that changes the set) is kept separate -- an
     old round's answers can never be resumed into, or mixed with, a new one.
+
+    Line endings are normalized to LF before hashing: this file is deployed via git,
+    which normalizes CRLF<->LF on checkout depending on platform/config, so hashing
+    raw bytes would give a different id on a Windows checkout than on the Linux
+    deployment even though the content is identical. Must match
+    results_common.current_manifest_id() exactly.
     """
     with open(MANIFEST_PATH, "rb") as f:
-        return hashlib.sha256(f.read()).hexdigest()[:8]
+        data = f.read()
+    normalized = data.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return hashlib.sha256(normalized).hexdigest()[:8]
 
 
 @st.cache_data
