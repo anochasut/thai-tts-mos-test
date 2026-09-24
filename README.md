@@ -1,4 +1,4 @@
-# Thai TTS AB Listening Test
+# TTS AB Listening Test
 
 An AB comparison test between one **Baseline** system and several **Candidate**
 systems. Baseline/Candidate labels are shown openly (not blinded) -- only which
